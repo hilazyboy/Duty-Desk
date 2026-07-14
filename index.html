@@ -1,0 +1,2330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Duty Desk</title>
+<style>
+  :root{
+    --ink:#14181C;
+    --ink-2:#1D2329;
+    --paper:#EDEAE1;
+    --paper-2:#E2DED2;
+    --amber:#F2B705;
+    --amber-dim:#B08A0A;
+    --steel:#4A6572;
+    --alert:#C1442E;
+    --line: rgba(20,24,28,0.16);
+    --paper-text:#1D2329;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--ink);
+    background-image:
+      radial-gradient(circle at 10% 0%, rgba(242,183,5,0.06), transparent 40%),
+      repeating-linear-gradient(180deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 3px);
+    color:var(--paper);
+    font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .shell{
+    max-width:480px;
+    margin:0 auto;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    padding:18px 14px 40px;
+  }
+
+  /* Header */
+  .header{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    padding:6px 4px 16px;
+    border-bottom:1px solid rgba(237,234,225,0.15);
+    margin-bottom:18px;
+  }
+  .brand{
+    font-family:'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+    font-weight:700;
+    font-size:22px;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    color:var(--paper);
+  }
+  .brand span{color:var(--amber);}
+  .badge-id{
+    font-family:ui-monospace, 'SF Mono', 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+    font-size:11px;
+    color:var(--steel);
+    letter-spacing:0.5px;
+  }
+
+  /* Tabs styled like a clipboard clip */
+  .tabs{
+    display:flex;
+    gap:2px;
+    background:var(--ink-2);
+    border-radius:10px 10px 0 0;
+    padding:5px 5px 0;
+    position:relative;
+  }
+  .tab{
+    flex:1;
+    text-align:center;
+    padding:12px 4px 11px;
+    font-family:'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    letter-spacing:0.4px;
+    text-transform:uppercase;
+    color:rgba(237,234,225,0.5);
+    background:transparent;
+    border:none;
+    border-radius:8px 8px 0 0;
+    cursor:pointer;
+    transition:color .15s ease, background .15s ease;
+  }
+  .tab.active{
+    color:var(--ink);
+    background:var(--paper);
+  }
+  .tab:not(.active):hover{color:var(--paper);}
+
+  /* Paper pad */
+  .pad{
+    background:var(--paper);
+    color:var(--paper-text);
+    border-radius:0 0 12px 12px;
+    padding:22px 18px 20px;
+    position:relative;
+    box-shadow:0 18px 40px rgba(0,0,0,0.35);
+  }
+  .pad::before{
+    content:"";
+    position:absolute;
+    top:0; left:0; right:0;
+    height:3px;
+    background:repeating-linear-gradient(90deg, var(--amber) 0 10px, transparent 10px 16px);
+    opacity:0.9;
+  }
+
+  .field-group{margin-bottom:16px;}
+  .field-label{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-family:ui-monospace, 'SF Mono', 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:0.6px;
+    text-transform:uppercase;
+    color:var(--steel);
+    margin-bottom:6px;
+  }
+  .field-label .req{color:var(--alert); font-size:14px; line-height:1;}
+  input[type=text], textarea, select{
+    width:100%;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:10px 11px;
+    font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size:14.5px;
+    color:var(--paper-text);
+    resize:vertical;
+    outline:none;
+  }
+  input[type=text]:focus, textarea:focus, select:focus{
+    border-color:var(--amber-dim);
+    box-shadow:0 0 0 3px rgba(242,183,5,0.18);
+  }
+  textarea{min-height:76px; line-height:1.45;}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+
+  .chip-select{display:flex; gap:8px; flex-wrap:wrap;}
+  .chip{
+    padding:7px 13px;
+    border-radius:20px;
+    border:1px solid var(--line);
+    background:#fff;
+    font-family:ui-monospace, 'SF Mono', 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+    font-size:12px;
+    font-weight:500;
+    cursor:pointer;
+    color:var(--paper-text);
+    user-select:none;
+  }
+  .chip.active{
+    background:var(--ink);
+    border-color:var(--ink);
+    color:var(--amber);
+  }
+
+  .generate-btn{
+    width:100%;
+    margin-top:6px;
+    padding:14px;
+    border:none;
+    border-radius:8px;
+    background:var(--ink);
+    color:var(--amber);
+    font-family:'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+    font-weight:600;
+    font-size:14.5px;
+    letter-spacing:0.6px;
+    text-transform:uppercase;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:9px;
+    transition:transform .1s ease, opacity .15s ease;
+  }
+  .generate-btn:active{transform:scale(0.98);}
+  .generate-btn:disabled{opacity:0.55; cursor:default;}
+
+  .mic-btn{
+    width:100%;
+    padding:13px;
+    margin-bottom:16px;
+    border:1.5px dashed var(--steel);
+    border-radius:8px;
+    background:rgba(74,101,114,0.06);
+    color:var(--steel);
+    font-family:ui-monospace, 'SF Mono', 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+    font-weight:600;
+    font-size:13px;
+    letter-spacing:0.3px;
+    cursor:pointer;
+  }
+  .mic-btn:disabled{opacity:0.4; cursor:not-allowed;}
+  .mic-btn.listening{
+    border-style:solid;
+    border-color:var(--alert);
+    color:var(--alert);
+    background:rgba(193,68,46,0.08);
+    animation:mic-pulse 1.1s ease-in-out infinite;
+  }
+  @keyframes mic-pulse{
+    0%,100%{box-shadow:0 0 0 0 rgba(193,68,46,0.25);}
+    50%{box-shadow:0 0 0 8px rgba(193,68,46,0);}
+  }
+  .heard-caption{
+    display:none;
+    font-family:ui-monospace, 'SF Mono', 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+    font-size:11.5px;
+    font-style:italic;
+    color:var(--steel);
+    margin:-8px 0 16px;
+    padding:8px 10px;
+    background:var(--paper-2);
+    border-radius:6px;
+    border-left:2px solid var(--amber-dim);
+  }
+  .spinner{
+    width:14px;height:14px;
+    border:2px solid rgba(242,183,5,0.3);
+    border-top-color:var(--amber);
+    border-radius:50%;
+    animation:spin .7s linear infinite;
+    display:none;
+  }
+  .generate-btn.loading .spinner{display:inline-block;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .error-msg{
+    margin-top:10px;
+    font-size:12.5px;
+    color:var(--alert);
+    font-family:ui-monospace, 'SF Mono', 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+  }
+
+  /* Output — stamped log entry / carbon copy stub */
+  .output-wrap{
+    margin-top:22px;
+    display:none;
+  }
+  .output-wrap.show{display:block;}
+  .stub-row{
+    display:flex;
+    align-items:stretch;
+    border-radius:8px;
+    overflow:hidden;
+    box-shadow:0 10px 26px rgba(0,0,0,0.3);
+  }
+  .stub{
+    width:30px;
+    background:var(--steel);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+  }
+  .stub span{
+    writing-mode:vertical-rl;
+    transform:rotate(180deg);
+    font-family:ui-monospace, 'SF Mono', 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+    font-size:10px;
+    letter-spacing:2px;
+    color:rgba(237,234,225,0.85);
+    text-transform:uppercase;
+  }
+  .output-body{
+    flex:1;
+    background:#fff;
+    padding:18px 16px 16px;
+    border-left:1px dashed rgba(20,24,28,0.25);
+  }
+  .output-meta{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+    padding-bottom:9px;
+    border-bottom:1px solid var(--line);
+  }
+  .output-meta .ts{
+    font-family:ui-monospace, 'SF Mono', 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+    font-size:10.5px;
+    color:var(--steel);
+    letter-spacing:0.4px;
+  }
+  .copy-btn{
+    background:none;
+    border:1px solid var(--line);
+    border-radius:5px;
+    padding:5px 10px;
+    font-family:ui-monospace, 'SF Mono', 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+    font-size:10.5px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+    color:var(--paper-text);
+    cursor:pointer;
+  }
+  .copy-btn:hover{background:var(--paper-2);}
+  .copy-btn.copied{color:#1a7a3c; border-color:#1a7a3c;}
+  .output-text{
+    font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size:14.5px;
+    line-height:1.6;
+    color:var(--paper-text);
+    white-space:pre-wrap;
+  }
+
+  .wa-row{margin-top:14px;}
+  .wa-row input{font-size:13px; padding:8px 10px;}
+  .wa-actions{
+    display:flex;
+    gap:8px;
+    margin-top:9px;
+  }
+  .wa-btn{
+    flex:1;
+    padding:11px 8px;
+    border-radius:7px;
+    border:none;
+    background:#25D366;
+    color:#0b3d20;
+    font-family:'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+    font-weight:600;
+    font-size:12.5px;
+    letter-spacing:0.3px;
+    text-transform:uppercase;
+    cursor:pointer;
+  }
+  .wa-btn:active{transform:scale(0.98);}
+  .wa-btn-outline{
+    background:#fff;
+    color:var(--paper-text);
+    border:1px solid var(--line);
+  }
+  .qr-box{
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    margin-top:14px;
+    padding:16px;
+    background:var(--paper-2);
+    border-radius:8px;
+    border:1px dashed var(--line);
+  }
+  .qr-box.show{display:flex;}
+  .qr-canvas{
+    width:180px;
+    height:180px;
+    background:#fff;
+    padding:8px;
+    border-radius:6px;
+  }
+  .qr-canvas svg{
+    display:block;
+    width:100%;
+    height:100%;
+  }
+  .qr-caption{
+    font-family:ui-monospace, 'SF Mono', 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+    font-size:10.5px;
+    color:var(--steel);
+    text-align:center;
+    letter-spacing:0.2px;
+  }
+
+  .footnote{
+    text-align:center;
+    font-family:ui-monospace, 'SF Mono', 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+    font-size:10.5px;
+    color:rgba(237,234,225,0.35);
+    margin-top:22px;
+    letter-spacing:0.3px;
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    .spinner{animation:none;}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="header">
+    <div class="brand">DUTY <span>DESK</span></div>
+    <div class="badge-id">FIELD REPORT ASSIST</div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-tab="patrol">Patrol Log</button>
+    <button class="tab" data-tab="incident">Incident</button>
+    <button class="tab" data-tab="whatsapp">WhatsApp</button>
+  </div>
+
+  <div class="pad">
+
+    <!-- PATROL FORM -->
+    <div class="form-panel" id="panel-patrol">
+      <button class="mic-btn" data-mode="patrol">🎤 Speak the report</button>
+      <div class="heard-caption" id="heard-patrol"></div>
+      <div class="field-group">
+        <div class="field-label"><span class="req">•</span>Zone / Floor (exact)</div>
+        <input type="text" id="p-location" placeholder="e.g. Zone A & Zone B, 3rd Floor (Burjeel Eye Institute)">
+      </div>
+      <div class="field-group">
+        <div class="field-label"><span class="req">•</span>Issue observed</div>
+        <textarea id="p-observation" placeholder="e.g. Two ceiling-mounted console lights are not functioning (lights are off)"></textarea>
+      </div>
+      <button class="generate-btn" data-mode="patrol"><span class="spinner"></span><span class="btn-label">Generate Line</span></button>
+    </div>
+
+    <!-- INCIDENT / PATIENT FORM -->
+    <div class="form-panel" id="panel-incident" style="display:none;">
+      <button class="mic-btn" data-mode="incident">🎤 Speak the incident</button>
+      <div class="heard-caption" id="heard-incident"></div>
+      <div class="field-group">
+        <div class="field-label"><span class="req">•</span>Who was involved</div>
+        <input type="text" id="i-who" placeholder="e.g. Visitor, John T.">
+      </div>
+      <div class="row2">
+        <div class="field-group">
+          <div class="field-label">Date</div>
+          <input type="text" id="i-date" placeholder="today">
+        </div>
+        <div class="field-group">
+          <div class="field-label">Time</div>
+          <input type="text" id="i-time" placeholder="now">
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="field-label"><span class="req">•</span>What happened</div>
+        <textarea id="i-what" placeholder="Describe what occurred, in order"></textarea>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Injuries / condition (if any)</div>
+        <input type="text" id="i-injury" placeholder="e.g. Minor cut to left hand, none / not applicable">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Action taken</div>
+        <input type="text" id="i-action" placeholder="e.g. First aid applied, supervisor notified">
+      </div>
+      <button class="generate-btn" data-mode="incident"><span class="spinner"></span><span class="btn-label">Generate Report</span></button>
+    </div>
+
+    <!-- WHATSAPP FORM -->
+    <div class="form-panel" id="panel-whatsapp" style="display:none;">
+      <button class="mic-btn" data-mode="whatsapp">🎤 Speak the reply</button>
+      <div class="heard-caption" id="heard-whatsapp"></div>
+      <div class="field-group">
+        <div class="field-label">Message you received (optional)</div>
+        <textarea id="w-incoming" placeholder="Paste what they sent you"></textarea>
+      </div>
+      <div class="field-group">
+        <div class="field-label"><span class="req">•</span>What you want to say</div>
+        <textarea id="w-intent" placeholder="e.g. tell them I'll be 10 min late to shift handover"></textarea>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Tone</div>
+        <div class="chip-select" id="w-tone">
+          <div class="chip active" data-val="Professional">Professional</div>
+          <div class="chip" data-val="Friendly">Friendly</div>
+          <div class="chip" data-val="Firm">Firm</div>
+        </div>
+      </div>
+      <button class="generate-btn" data-mode="whatsapp"><span class="spinner"></span><span class="btn-label">Draft Reply</span></button>
+    </div>
+
+    <div class="error-msg" id="error-msg" style="display:none;"></div>
+
+    <div class="output-wrap" id="output-wrap">
+      <div class="stub-row">
+        <div class="stub"><span id="stub-label">DUTY LOG</span></div>
+        <div class="output-body">
+          <div class="output-meta">
+            <span class="ts" id="output-ts"></span>
+            <button class="copy-btn" id="copy-btn">Copy</button>
+          </div>
+          <div class="output-text" id="output-text"></div>
+
+          <div class="wa-row">
+            <input type="text" id="wa-number" placeholder="WhatsApp number, optional (e.g. +971501234567)">
+          </div>
+          <div class="wa-actions">
+            <button class="wa-btn" id="wa-send">Send via WhatsApp</button>
+            <button class="wa-btn wa-btn-outline" id="wa-qr-toggle">Show QR</button>
+          </div>
+          <div class="qr-box" id="qr-box">
+            <div id="qr-img" class="qr-canvas"></div>
+            <span class="qr-caption">Scan to open this message in WhatsApp</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footnote">DRAFTED BY AI — REVIEW BEFORE FILING</div>
+</div>
+
+<script>
+//---------------------------------------------------------------------
+//
+// QR Code Generator for JavaScript
+//
+// Copyright (c) 2009 Kazuhiko Arase
+//
+// URL: http://www.d-project.com/
+//
+// Licensed under the MIT license:
+//  http://www.opensource.org/licenses/mit-license.php
+//
+// The word 'QR Code' is registered trademark of
+// DENSO WAVE INCORPORATED
+//  http://www.denso-wave.com/qrcode/faqpatent-e.html
+//
+//---------------------------------------------------------------------
+
+var qrcode = function() {
+
+  //---------------------------------------------------------------------
+  // qrcode
+  //---------------------------------------------------------------------
+
+  /**
+   * qrcode
+   * @param typeNumber 1 to 40
+   * @param errorCorrectionLevel 'L','M','Q','H'
+   */
+  var qrcode = function(typeNumber, errorCorrectionLevel) {
+
+    var PAD0 = 0xEC;
+    var PAD1 = 0x11;
+
+    var _typeNumber = typeNumber;
+    var _errorCorrectionLevel = QRErrorCorrectionLevel[errorCorrectionLevel];
+    var _modules = null;
+    var _moduleCount = 0;
+    var _dataCache = null;
+    var _dataList = new Array();
+
+    var _this = {};
+
+    var makeImpl = function(test, maskPattern) {
+
+      _moduleCount = _typeNumber * 4 + 17;
+      _modules = function(moduleCount) {
+        var modules = new Array(moduleCount);
+        for (var row = 0; row < moduleCount; row += 1) {
+          modules[row] = new Array(moduleCount);
+          for (var col = 0; col < moduleCount; col += 1) {
+            modules[row][col] = null;
+          }
+        }
+        return modules;
+      }(_moduleCount);
+
+      setupPositionProbePattern(0, 0);
+      setupPositionProbePattern(_moduleCount - 7, 0);
+      setupPositionProbePattern(0, _moduleCount - 7);
+      setupPositionAdjustPattern();
+      setupTimingPattern();
+      setupTypeInfo(test, maskPattern);
+
+      if (_typeNumber >= 7) {
+        setupTypeNumber(test);
+      }
+
+      if (_dataCache == null) {
+        _dataCache = createData(_typeNumber, _errorCorrectionLevel, _dataList);
+      }
+
+      mapData(_dataCache, maskPattern);
+    };
+
+    var setupPositionProbePattern = function(row, col) {
+
+      for (var r = -1; r <= 7; r += 1) {
+
+        if (row + r <= -1 || _moduleCount <= row + r) continue;
+
+        for (var c = -1; c <= 7; c += 1) {
+
+          if (col + c <= -1 || _moduleCount <= col + c) continue;
+
+          if ( (0 <= r && r <= 6 && (c == 0 || c == 6) )
+              || (0 <= c && c <= 6 && (r == 0 || r == 6) )
+              || (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+            _modules[row + r][col + c] = true;
+          } else {
+            _modules[row + r][col + c] = false;
+          }
+        }
+      }
+    };
+
+    var getBestMaskPattern = function() {
+
+      var minLostPoint = 0;
+      var pattern = 0;
+
+      for (var i = 0; i < 8; i += 1) {
+
+        makeImpl(true, i);
+
+        var lostPoint = QRUtil.getLostPoint(_this);
+
+        if (i == 0 || minLostPoint > lostPoint) {
+          minLostPoint = lostPoint;
+          pattern = i;
+        }
+      }
+
+      return pattern;
+    };
+
+    var setupTimingPattern = function() {
+
+      for (var r = 8; r < _moduleCount - 8; r += 1) {
+        if (_modules[r][6] != null) {
+          continue;
+        }
+        _modules[r][6] = (r % 2 == 0);
+      }
+
+      for (var c = 8; c < _moduleCount - 8; c += 1) {
+        if (_modules[6][c] != null) {
+          continue;
+        }
+        _modules[6][c] = (c % 2 == 0);
+      }
+    };
+
+    var setupPositionAdjustPattern = function() {
+
+      var pos = QRUtil.getPatternPosition(_typeNumber);
+
+      for (var i = 0; i < pos.length; i += 1) {
+
+        for (var j = 0; j < pos.length; j += 1) {
+
+          var row = pos[i];
+          var col = pos[j];
+
+          if (_modules[row][col] != null) {
+            continue;
+          }
+
+          for (var r = -2; r <= 2; r += 1) {
+
+            for (var c = -2; c <= 2; c += 1) {
+
+              if (r == -2 || r == 2 || c == -2 || c == 2
+                  || (r == 0 && c == 0) ) {
+                _modules[row + r][col + c] = true;
+              } else {
+                _modules[row + r][col + c] = false;
+              }
+            }
+          }
+        }
+      }
+    };
+
+    var setupTypeNumber = function(test) {
+
+      var bits = QRUtil.getBCHTypeNumber(_typeNumber);
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[Math.floor(i / 3)][i % 3 + _moduleCount - 8 - 3] = mod;
+      }
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[i % 3 + _moduleCount - 8 - 3][Math.floor(i / 3)] = mod;
+      }
+    };
+
+    var setupTypeInfo = function(test, maskPattern) {
+
+      var data = (_errorCorrectionLevel << 3) | maskPattern;
+      var bits = QRUtil.getBCHTypeInfo(data);
+
+      // vertical
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 6) {
+          _modules[i][8] = mod;
+        } else if (i < 8) {
+          _modules[i + 1][8] = mod;
+        } else {
+          _modules[_moduleCount - 15 + i][8] = mod;
+        }
+      }
+
+      // horizontal
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 8) {
+          _modules[8][_moduleCount - i - 1] = mod;
+        } else if (i < 9) {
+          _modules[8][15 - i - 1 + 1] = mod;
+        } else {
+          _modules[8][15 - i - 1] = mod;
+        }
+      }
+
+      // fixed module
+      _modules[_moduleCount - 8][8] = (!test);
+    };
+
+    var mapData = function(data, maskPattern) {
+
+      var inc = -1;
+      var row = _moduleCount - 1;
+      var bitIndex = 7;
+      var byteIndex = 0;
+      var maskFunc = QRUtil.getMaskFunction(maskPattern);
+
+      for (var col = _moduleCount - 1; col > 0; col -= 2) {
+
+        if (col == 6) col -= 1;
+
+        while (true) {
+
+          for (var c = 0; c < 2; c += 1) {
+
+            if (_modules[row][col - c] == null) {
+
+              var dark = false;
+
+              if (byteIndex < data.length) {
+                dark = ( ( (data[byteIndex] >>> bitIndex) & 1) == 1);
+              }
+
+              var mask = maskFunc(row, col - c);
+
+              if (mask) {
+                dark = !dark;
+              }
+
+              _modules[row][col - c] = dark;
+              bitIndex -= 1;
+
+              if (bitIndex == -1) {
+                byteIndex += 1;
+                bitIndex = 7;
+              }
+            }
+          }
+
+          row += inc;
+
+          if (row < 0 || _moduleCount <= row) {
+            row -= inc;
+            inc = -inc;
+            break;
+          }
+        }
+      }
+    };
+
+    var createBytes = function(buffer, rsBlocks) {
+
+      var offset = 0;
+
+      var maxDcCount = 0;
+      var maxEcCount = 0;
+
+      var dcdata = new Array(rsBlocks.length);
+      var ecdata = new Array(rsBlocks.length);
+
+      for (var r = 0; r < rsBlocks.length; r += 1) {
+
+        var dcCount = rsBlocks[r].dataCount;
+        var ecCount = rsBlocks[r].totalCount - dcCount;
+
+        maxDcCount = Math.max(maxDcCount, dcCount);
+        maxEcCount = Math.max(maxEcCount, ecCount);
+
+        dcdata[r] = new Array(dcCount);
+
+        for (var i = 0; i < dcdata[r].length; i += 1) {
+          dcdata[r][i] = 0xff & buffer.getBuffer()[i + offset];
+        }
+        offset += dcCount;
+
+        var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+        var rawPoly = qrPolynomial(dcdata[r], rsPoly.getLength() - 1);
+
+        var modPoly = rawPoly.mod(rsPoly);
+        ecdata[r] = new Array(rsPoly.getLength() - 1);
+        for (var i = 0; i < ecdata[r].length; i += 1) {
+          var modIndex = i + modPoly.getLength() - ecdata[r].length;
+          ecdata[r][i] = (modIndex >= 0)? modPoly.getAt(modIndex) : 0;
+        }
+      }
+
+      var totalCodeCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalCodeCount += rsBlocks[i].totalCount;
+      }
+
+      var data = new Array(totalCodeCount);
+      var index = 0;
+
+      for (var i = 0; i < maxDcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < dcdata[r].length) {
+            data[index] = dcdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      for (var i = 0; i < maxEcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < ecdata[r].length) {
+            data[index] = ecdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      return data;
+    };
+
+    var createData = function(typeNumber, errorCorrectionLevel, dataList) {
+
+      var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectionLevel);
+
+      var buffer = qrBitBuffer();
+
+      for (var i = 0; i < dataList.length; i += 1) {
+        var data = dataList[i];
+        buffer.put(data.getMode(), 4);
+        buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber) );
+        data.write(buffer);
+      }
+
+      // calc num max data.
+      var totalDataCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalDataCount += rsBlocks[i].dataCount;
+      }
+
+      if (buffer.getLengthInBits() > totalDataCount * 8) {
+        throw new Error('code length overflow. ('
+          + buffer.getLengthInBits()
+          + '>'
+          + totalDataCount * 8
+          + ')');
+      }
+
+      // end code
+      if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+        buffer.put(0, 4);
+      }
+
+      // padding
+      while (buffer.getLengthInBits() % 8 != 0) {
+        buffer.putBit(false);
+      }
+
+      // padding
+      while (true) {
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD0, 8);
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD1, 8);
+      }
+
+      return createBytes(buffer, rsBlocks);
+    };
+
+    _this.addData = function(data, mode) {
+
+      mode = mode || 'Byte';
+
+      var newData = null;
+
+      switch(mode) {
+      case 'Numeric' :
+        newData = qrNumber(data);
+        break;
+      case 'Alphanumeric' :
+        newData = qrAlphaNum(data);
+        break;
+      case 'Byte' :
+        newData = qr8BitByte(data);
+        break;
+      case 'Kanji' :
+        newData = qrKanji(data);
+        break;
+      default :
+        throw 'mode:' + mode;
+      }
+
+      _dataList.push(newData);
+      _dataCache = null;
+    };
+
+    _this.isDark = function(row, col) {
+      if (row < 0 || _moduleCount <= row || col < 0 || _moduleCount <= col) {
+        throw new Error(row + ',' + col);
+      }
+      return _modules[row][col];
+    };
+
+    _this.getModuleCount = function() {
+      return _moduleCount;
+    };
+
+    _this.make = function() {
+      makeImpl(false, getBestMaskPattern() );
+    };
+
+    _this.createTableTag = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var qrHtml = '';
+
+      qrHtml += '<table style="';
+      qrHtml += ' border-width: 0px; border-style: none;';
+      qrHtml += ' border-collapse: collapse;';
+      qrHtml += ' padding: 0px; margin: ' + margin + 'px;';
+      qrHtml += '">';
+      qrHtml += '<tbody>';
+
+      for (var r = 0; r < _this.getModuleCount(); r += 1) {
+
+        qrHtml += '<tr>';
+
+        for (var c = 0; c < _this.getModuleCount(); c += 1) {
+          qrHtml += '<td style="';
+          qrHtml += ' border-width: 0px; border-style: none;';
+          qrHtml += ' border-collapse: collapse;';
+          qrHtml += ' padding: 0px; margin: 0px;';
+          qrHtml += ' width: ' + cellSize + 'px;';
+          qrHtml += ' height: ' + cellSize + 'px;';
+          qrHtml += ' background-color: ';
+          qrHtml += _this.isDark(r, c)? '#000000' : '#ffffff';
+          qrHtml += ';';
+          qrHtml += '"/>';
+        }
+
+        qrHtml += '</tr>';
+      }
+
+      qrHtml += '</tbody>';
+      qrHtml += '</table>';
+
+      return qrHtml;
+    };
+
+    _this.createSvgTag = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var c, mc, r, mr, qrSvg='', rect;
+
+      rect = 'l' + cellSize + ',0 0,' + cellSize +
+        ' -' + cellSize + ',0 0,-' + cellSize + 'z ';
+
+      qrSvg += '<svg';
+      qrSvg += ' width="' + size + 'px"';
+      qrSvg += ' height="' + size + 'px"';
+      qrSvg += ' xmlns="http://www.w3.org/2000/svg"';
+      qrSvg += '>';
+      qrSvg += '<rect width="100%" height="100%" fill="white"/>';
+      qrSvg += '<path d="';
+
+      for (r = 0; r < _this.getModuleCount(); r += 1) {
+        mr = r * cellSize + margin;
+        for (c = 0; c < _this.getModuleCount(); c += 1) {
+          if (_this.isDark(r, c) ) {
+            mc = c*cellSize+margin;
+            qrSvg += 'M' + mc + ',' + mr + rect;
+          }
+        }
+      }
+
+      qrSvg += '" stroke="transparent" fill="black"/>';
+      qrSvg += '</svg>';
+
+      return qrSvg;
+    };
+
+    _this.createImgTag = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      return createImgTag(size, size, function(x, y) {
+        if (min <= x && x < max && min <= y && y < max) {
+          var c = Math.floor( (x - min) / cellSize);
+          var r = Math.floor( (y - min) / cellSize);
+          return _this.isDark(r, c)? 0 : 1;
+        } else {
+          return 1;
+        }
+      } );
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrcode.stringToBytes
+  //---------------------------------------------------------------------
+
+  qrcode.stringToBytes = function(s) {
+    var bytes = new Array();
+    for (var i = 0; i < s.length; i += 1) {
+      var c = s.charCodeAt(i);
+      bytes.push(c & 0xff);
+    }
+    return bytes;
+  };
+
+  //---------------------------------------------------------------------
+  // QRMode
+  //---------------------------------------------------------------------
+
+  var QRMode = {
+    MODE_NUMBER :    1 << 0,
+    MODE_ALPHA_NUM : 1 << 1,
+    MODE_8BIT_BYTE : 1 << 2,
+    MODE_KANJI :     1 << 3
+  };
+
+  //---------------------------------------------------------------------
+  // QRErrorCorrectionLevel
+  //---------------------------------------------------------------------
+
+  var QRErrorCorrectionLevel = {
+    L : 1,
+    M : 0,
+    Q : 3,
+    H : 2
+  };
+
+  //---------------------------------------------------------------------
+  // QRMaskPattern
+  //---------------------------------------------------------------------
+
+  var QRMaskPattern = {
+    PATTERN000 : 0,
+    PATTERN001 : 1,
+    PATTERN010 : 2,
+    PATTERN011 : 3,
+    PATTERN100 : 4,
+    PATTERN101 : 5,
+    PATTERN110 : 6,
+    PATTERN111 : 7
+  };
+
+  //---------------------------------------------------------------------
+  // QRUtil
+  //---------------------------------------------------------------------
+
+  var QRUtil = function() {
+
+    var PATTERN_POSITION_TABLE = [
+      [],
+      [6, 18],
+      [6, 22],
+      [6, 26],
+      [6, 30],
+      [6, 34],
+      [6, 22, 38],
+      [6, 24, 42],
+      [6, 26, 46],
+      [6, 28, 50],
+      [6, 30, 54],
+      [6, 32, 58],
+      [6, 34, 62],
+      [6, 26, 46, 66],
+      [6, 26, 48, 70],
+      [6, 26, 50, 74],
+      [6, 30, 54, 78],
+      [6, 30, 56, 82],
+      [6, 30, 58, 86],
+      [6, 34, 62, 90],
+      [6, 28, 50, 72, 94],
+      [6, 26, 50, 74, 98],
+      [6, 30, 54, 78, 102],
+      [6, 28, 54, 80, 106],
+      [6, 32, 58, 84, 110],
+      [6, 30, 58, 86, 114],
+      [6, 34, 62, 90, 118],
+      [6, 26, 50, 74, 98, 122],
+      [6, 30, 54, 78, 102, 126],
+      [6, 26, 52, 78, 104, 130],
+      [6, 30, 56, 82, 108, 134],
+      [6, 34, 60, 86, 112, 138],
+      [6, 30, 58, 86, 114, 142],
+      [6, 34, 62, 90, 118, 146],
+      [6, 30, 54, 78, 102, 126, 150],
+      [6, 24, 50, 76, 102, 128, 154],
+      [6, 28, 54, 80, 106, 132, 158],
+      [6, 32, 58, 84, 110, 136, 162],
+      [6, 26, 54, 82, 110, 138, 166],
+      [6, 30, 58, 86, 114, 142, 170]
+    ];
+    var G15 = (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0);
+    var G18 = (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0);
+    var G15_MASK = (1 << 14) | (1 << 12) | (1 << 10) | (1 << 4) | (1 << 1);
+
+    var _this = {};
+
+    var getBCHDigit = function(data) {
+      var digit = 0;
+      while (data != 0) {
+        digit += 1;
+        data >>>= 1;
+      }
+      return digit;
+    };
+
+    _this.getBCHTypeInfo = function(data) {
+      var d = data << 10;
+      while (getBCHDigit(d) - getBCHDigit(G15) >= 0) {
+        d ^= (G15 << (getBCHDigit(d) - getBCHDigit(G15) ) );
+      }
+      return ( (data << 10) | d) ^ G15_MASK;
+    };
+
+    _this.getBCHTypeNumber = function(data) {
+      var d = data << 12;
+      while (getBCHDigit(d) - getBCHDigit(G18) >= 0) {
+        d ^= (G18 << (getBCHDigit(d) - getBCHDigit(G18) ) );
+      }
+      return (data << 12) | d;
+    };
+
+    _this.getPatternPosition = function(typeNumber) {
+      return PATTERN_POSITION_TABLE[typeNumber - 1];
+    };
+
+    _this.getMaskFunction = function(maskPattern) {
+
+      switch (maskPattern) {
+
+      case QRMaskPattern.PATTERN000 :
+        return function(i, j) { return (i + j) % 2 == 0; };
+      case QRMaskPattern.PATTERN001 :
+        return function(i, j) { return i % 2 == 0; };
+      case QRMaskPattern.PATTERN010 :
+        return function(i, j) { return j % 3 == 0; };
+      case QRMaskPattern.PATTERN011 :
+        return function(i, j) { return (i + j) % 3 == 0; };
+      case QRMaskPattern.PATTERN100 :
+        return function(i, j) { return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 == 0; };
+      case QRMaskPattern.PATTERN101 :
+        return function(i, j) { return (i * j) % 2 + (i * j) % 3 == 0; };
+      case QRMaskPattern.PATTERN110 :
+        return function(i, j) { return ( (i * j) % 2 + (i * j) % 3) % 2 == 0; };
+      case QRMaskPattern.PATTERN111 :
+        return function(i, j) { return ( (i * j) % 3 + (i + j) % 2) % 2 == 0; };
+
+      default :
+        throw new Error('bad maskPattern:' + maskPattern);
+      }
+    };
+
+    _this.getErrorCorrectPolynomial = function(errorCorrectLength) {
+      var a = qrPolynomial([1], 0);
+      for (var i = 0; i < errorCorrectLength; i += 1) {
+        a = a.multiply(qrPolynomial([1, QRMath.gexp(i)], 0) );
+      }
+      return a;
+    };
+
+    _this.getLengthInBits = function(mode, type) {
+
+      if (1 <= type && type < 10) {
+
+        // 1 - 9
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 10;
+        case QRMode.MODE_ALPHA_NUM : return 9;
+        case QRMode.MODE_8BIT_BYTE : return 8;
+        case QRMode.MODE_KANJI     : return 8;
+        default :
+          throw new Error('mode:' + mode);
+        }
+
+      } else if (type < 27) {
+
+        // 10 - 26
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 12;
+        case QRMode.MODE_ALPHA_NUM : return 11;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 10;
+        default :
+          throw new Error('mode:' + mode);
+        }
+
+      } else if (type < 41) {
+
+        // 27 - 40
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 14;
+        case QRMode.MODE_ALPHA_NUM : return 13;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 12;
+        default :
+          throw new Error('mode:' + mode);
+        }
+
+      } else {
+        throw new Error('type:' + type);
+      }
+    };
+
+    _this.getLostPoint = function(qrcode) {
+
+      var moduleCount = qrcode.getModuleCount();
+
+      var lostPoint = 0;
+
+      // LEVEL1
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount; col += 1) {
+
+          var sameCount = 0;
+          var dark = qrcode.isDark(row, col);
+
+          for (var r = -1; r <= 1; r += 1) {
+
+            if (row + r < 0 || moduleCount <= row + r) {
+              continue;
+            }
+
+            for (var c = -1; c <= 1; c += 1) {
+
+              if (col + c < 0 || moduleCount <= col + c) {
+                continue;
+              }
+
+              if (r == 0 && c == 0) {
+                continue;
+              }
+
+              if (dark == qrcode.isDark(row + r, col + c) ) {
+                sameCount += 1;
+              }
+            }
+          }
+
+          if (sameCount > 5) {
+            lostPoint += (3 + sameCount - 5);
+          }
+        }
+      };
+
+      // LEVEL2
+
+      for (var row = 0; row < moduleCount - 1; row += 1) {
+        for (var col = 0; col < moduleCount - 1; col += 1) {
+          var count = 0;
+          if (qrcode.isDark(row, col) ) count += 1;
+          if (qrcode.isDark(row + 1, col) ) count += 1;
+          if (qrcode.isDark(row, col + 1) ) count += 1;
+          if (qrcode.isDark(row + 1, col + 1) ) count += 1;
+          if (count == 0 || count == 4) {
+            lostPoint += 3;
+          }
+        }
+      }
+
+      // LEVEL3
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount - 6; col += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row, col + 1)
+              &&  qrcode.isDark(row, col + 2)
+              &&  qrcode.isDark(row, col + 3)
+              &&  qrcode.isDark(row, col + 4)
+              && !qrcode.isDark(row, col + 5)
+              &&  qrcode.isDark(row, col + 6) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount - 6; row += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row + 1, col)
+              &&  qrcode.isDark(row + 2, col)
+              &&  qrcode.isDark(row + 3, col)
+              &&  qrcode.isDark(row + 4, col)
+              && !qrcode.isDark(row + 5, col)
+              &&  qrcode.isDark(row + 6, col) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      // LEVEL4
+
+      var darkCount = 0;
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount; row += 1) {
+          if (qrcode.isDark(row, col) ) {
+            darkCount += 1;
+          }
+        }
+      }
+
+      var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+      lostPoint += ratio * 10;
+
+      return lostPoint;
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // QRMath
+  //---------------------------------------------------------------------
+
+  var QRMath = function() {
+
+    var EXP_TABLE = new Array(256);
+    var LOG_TABLE = new Array(256);
+
+    // initialize tables
+    for (var i = 0; i < 8; i += 1) {
+      EXP_TABLE[i] = 1 << i;
+    }
+    for (var i = 8; i < 256; i += 1) {
+      EXP_TABLE[i] = EXP_TABLE[i - 4]
+        ^ EXP_TABLE[i - 5]
+        ^ EXP_TABLE[i - 6]
+        ^ EXP_TABLE[i - 8];
+    }
+    for (var i = 0; i < 255; i += 1) {
+      LOG_TABLE[EXP_TABLE[i] ] = i;
+    }
+
+    var _this = {};
+
+    _this.glog = function(n) {
+
+      if (n < 1) {
+        throw new Error('glog(' + n + ')');
+      }
+
+      return LOG_TABLE[n];
+    };
+
+    _this.gexp = function(n) {
+
+      while (n < 0) {
+        n += 255;
+      }
+
+      while (n >= 256) {
+        n -= 255;
+      }
+
+      return EXP_TABLE[n];
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // qrPolynomial
+  //---------------------------------------------------------------------
+
+  function qrPolynomial(num, shift) {
+
+    if (typeof num.length == 'undefined') {
+      throw new Error(num.length + '/' + shift);
+    }
+
+    var _num = function() {
+      var offset = 0;
+      while (offset < num.length && num[offset] == 0) {
+        offset += 1;
+      }
+      var _num = new Array(num.length - offset + shift);
+      for (var i = 0; i < num.length - offset; i += 1) {
+        _num[i] = num[i + offset];
+      }
+      return _num;
+    }();
+
+    var _this = {};
+
+    _this.getAt = function(index) {
+      return _num[index];
+    };
+
+    _this.getLength = function() {
+      return _num.length;
+    };
+
+    _this.multiply = function(e) {
+
+      var num = new Array(_this.getLength() + e.getLength() - 1);
+
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        for (var j = 0; j < e.getLength(); j += 1) {
+          num[i + j] ^= QRMath.gexp(QRMath.glog(_this.getAt(i) ) + QRMath.glog(e.getAt(j) ) );
+        }
+      }
+
+      return qrPolynomial(num, 0);
+    };
+
+    _this.mod = function(e) {
+
+      if (_this.getLength() - e.getLength() < 0) {
+        return _this;
+      }
+
+      var ratio = QRMath.glog(_this.getAt(0) ) - QRMath.glog(e.getAt(0) );
+
+      var num = new Array(_this.getLength() );
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        num[i] = _this.getAt(i);
+      }
+
+      for (var i = 0; i < e.getLength(); i += 1) {
+        num[i] ^= QRMath.gexp(QRMath.glog(e.getAt(i) ) + ratio);
+      }
+
+      // recursive call
+      return qrPolynomial(num, 0).mod(e);
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // QRRSBlock
+  //---------------------------------------------------------------------
+
+  var QRRSBlock = function() {
+
+    var RS_BLOCK_TABLE = [
+
+      // L
+      // M
+      // Q
+      // H
+
+      // 1
+      [1, 26, 19],
+      [1, 26, 16],
+      [1, 26, 13],
+      [1, 26, 9],
+
+      // 2
+      [1, 44, 34],
+      [1, 44, 28],
+      [1, 44, 22],
+      [1, 44, 16],
+
+      // 3
+      [1, 70, 55],
+      [1, 70, 44],
+      [2, 35, 17],
+      [2, 35, 13],
+
+      // 4
+      [1, 100, 80],
+      [2, 50, 32],
+      [2, 50, 24],
+      [4, 25, 9],
+
+      // 5
+      [1, 134, 108],
+      [2, 67, 43],
+      [2, 33, 15, 2, 34, 16],
+      [2, 33, 11, 2, 34, 12],
+
+      // 6
+      [2, 86, 68],
+      [4, 43, 27],
+      [4, 43, 19],
+      [4, 43, 15],
+
+      // 7
+      [2, 98, 78],
+      [4, 49, 31],
+      [2, 32, 14, 4, 33, 15],
+      [4, 39, 13, 1, 40, 14],
+
+      // 8
+      [2, 121, 97],
+      [2, 60, 38, 2, 61, 39],
+      [4, 40, 18, 2, 41, 19],
+      [4, 40, 14, 2, 41, 15],
+
+      // 9
+      [2, 146, 116],
+      [3, 58, 36, 2, 59, 37],
+      [4, 36, 16, 4, 37, 17],
+      [4, 36, 12, 4, 37, 13],
+
+      // 10
+      [2, 86, 68, 2, 87, 69],
+      [4, 69, 43, 1, 70, 44],
+      [6, 43, 19, 2, 44, 20],
+      [6, 43, 15, 2, 44, 16],
+
+      // 11
+      [4, 101, 81],
+      [1, 80, 50, 4, 81, 51],
+      [4, 50, 22, 4, 51, 23],
+      [3, 36, 12, 8, 37, 13],
+
+      // 12
+      [2, 116, 92, 2, 117, 93],
+      [6, 58, 36, 2, 59, 37],
+      [4, 46, 20, 6, 47, 21],
+      [7, 42, 14, 4, 43, 15],
+
+      // 13
+      [4, 133, 107],
+      [8, 59, 37, 1, 60, 38],
+      [8, 44, 20, 4, 45, 21],
+      [12, 33, 11, 4, 34, 12],
+
+      // 14
+      [3, 145, 115, 1, 146, 116],
+      [4, 64, 40, 5, 65, 41],
+      [11, 36, 16, 5, 37, 17],
+      [11, 36, 12, 5, 37, 13],
+
+      // 15
+      [5, 109, 87, 1, 110, 88],
+      [5, 65, 41, 5, 66, 42],
+      [5, 54, 24, 7, 55, 25],
+      [11, 36, 12, 7, 37, 13],
+
+      // 16
+      [5, 122, 98, 1, 123, 99],
+      [7, 73, 45, 3, 74, 46],
+      [15, 43, 19, 2, 44, 20],
+      [3, 45, 15, 13, 46, 16],
+
+      // 17
+      [1, 135, 107, 5, 136, 108],
+      [10, 74, 46, 1, 75, 47],
+      [1, 50, 22, 15, 51, 23],
+      [2, 42, 14, 17, 43, 15],
+
+      // 18
+      [5, 150, 120, 1, 151, 121],
+      [9, 69, 43, 4, 70, 44],
+      [17, 50, 22, 1, 51, 23],
+      [2, 42, 14, 19, 43, 15],
+
+      // 19
+      [3, 141, 113, 4, 142, 114],
+      [3, 70, 44, 11, 71, 45],
+      [17, 47, 21, 4, 48, 22],
+      [9, 39, 13, 16, 40, 14],
+
+      // 20
+      [3, 135, 107, 5, 136, 108],
+      [3, 67, 41, 13, 68, 42],
+      [15, 54, 24, 5, 55, 25],
+      [15, 43, 15, 10, 44, 16],
+
+      // 21
+      [4, 144, 116, 4, 145, 117],
+      [17, 68, 42],
+      [17, 50, 22, 6, 51, 23],
+      [19, 46, 16, 6, 47, 17],
+
+      // 22
+      [2, 139, 111, 7, 140, 112],
+      [17, 74, 46],
+      [7, 54, 24, 16, 55, 25],
+      [34, 37, 13],
+
+      // 23
+      [4, 151, 121, 5, 152, 122],
+      [4, 75, 47, 14, 76, 48],
+      [11, 54, 24, 14, 55, 25],
+      [16, 45, 15, 14, 46, 16],
+
+      // 24
+      [6, 147, 117, 4, 148, 118],
+      [6, 73, 45, 14, 74, 46],
+      [11, 54, 24, 16, 55, 25],
+      [30, 46, 16, 2, 47, 17],
+
+      // 25
+      [8, 132, 106, 4, 133, 107],
+      [8, 75, 47, 13, 76, 48],
+      [7, 54, 24, 22, 55, 25],
+      [22, 45, 15, 13, 46, 16],
+
+      // 26
+      [10, 142, 114, 2, 143, 115],
+      [19, 74, 46, 4, 75, 47],
+      [28, 50, 22, 6, 51, 23],
+      [33, 46, 16, 4, 47, 17],
+
+      // 27
+      [8, 152, 122, 4, 153, 123],
+      [22, 73, 45, 3, 74, 46],
+      [8, 53, 23, 26, 54, 24],
+      [12, 45, 15, 28, 46, 16],
+
+      // 28
+      [3, 147, 117, 10, 148, 118],
+      [3, 73, 45, 23, 74, 46],
+      [4, 54, 24, 31, 55, 25],
+      [11, 45, 15, 31, 46, 16],
+
+      // 29
+      [7, 146, 116, 7, 147, 117],
+      [21, 73, 45, 7, 74, 46],
+      [1, 53, 23, 37, 54, 24],
+      [19, 45, 15, 26, 46, 16],
+
+      // 30
+      [5, 145, 115, 10, 146, 116],
+      [19, 75, 47, 10, 76, 48],
+      [15, 54, 24, 25, 55, 25],
+      [23, 45, 15, 25, 46, 16],
+
+      // 31
+      [13, 145, 115, 3, 146, 116],
+      [2, 74, 46, 29, 75, 47],
+      [42, 54, 24, 1, 55, 25],
+      [23, 45, 15, 28, 46, 16],
+
+      // 32
+      [17, 145, 115],
+      [10, 74, 46, 23, 75, 47],
+      [10, 54, 24, 35, 55, 25],
+      [19, 45, 15, 35, 46, 16],
+
+      // 33
+      [17, 145, 115, 1, 146, 116],
+      [14, 74, 46, 21, 75, 47],
+      [29, 54, 24, 19, 55, 25],
+      [11, 45, 15, 46, 46, 16],
+
+      // 34
+      [13, 145, 115, 6, 146, 116],
+      [14, 74, 46, 23, 75, 47],
+      [44, 54, 24, 7, 55, 25],
+      [59, 46, 16, 1, 47, 17],
+
+      // 35
+      [12, 151, 121, 7, 152, 122],
+      [12, 75, 47, 26, 76, 48],
+      [39, 54, 24, 14, 55, 25],
+      [22, 45, 15, 41, 46, 16],
+
+      // 36
+      [6, 151, 121, 14, 152, 122],
+      [6, 75, 47, 34, 76, 48],
+      [46, 54, 24, 10, 55, 25],
+      [2, 45, 15, 64, 46, 16],
+
+      // 37
+      [17, 152, 122, 4, 153, 123],
+      [29, 74, 46, 14, 75, 47],
+      [49, 54, 24, 10, 55, 25],
+      [24, 45, 15, 46, 46, 16],
+
+      // 38
+      [4, 152, 122, 18, 153, 123],
+      [13, 74, 46, 32, 75, 47],
+      [48, 54, 24, 14, 55, 25],
+      [42, 45, 15, 32, 46, 16],
+
+      // 39
+      [20, 147, 117, 4, 148, 118],
+      [40, 75, 47, 7, 76, 48],
+      [43, 54, 24, 22, 55, 25],
+      [10, 45, 15, 67, 46, 16],
+
+      // 40
+      [19, 148, 118, 6, 149, 119],
+      [18, 75, 47, 31, 76, 48],
+      [34, 54, 24, 34, 55, 25],
+      [20, 45, 15, 61, 46, 16]
+    ];
+
+    var qrRSBlock = function(totalCount, dataCount) {
+      var _this = {};
+      _this.totalCount = totalCount;
+      _this.dataCount = dataCount;
+      return _this;
+    };
+
+    var _this = {};
+
+    var getRsBlockTable = function(typeNumber, errorCorrectionLevel) {
+
+      switch(errorCorrectionLevel) {
+      case QRErrorCorrectionLevel.L :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+      case QRErrorCorrectionLevel.M :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+      case QRErrorCorrectionLevel.Q :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+      case QRErrorCorrectionLevel.H :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+      default :
+        return undefined;
+      }
+    };
+
+    _this.getRSBlocks = function(typeNumber, errorCorrectionLevel) {
+
+      var rsBlock = getRsBlockTable(typeNumber, errorCorrectionLevel);
+
+      if (typeof rsBlock == 'undefined') {
+        throw new Error('bad rs block @ typeNumber:' + typeNumber +
+            '/errorCorrectionLevel:' + errorCorrectionLevel);
+      }
+
+      var length = rsBlock.length / 3;
+
+      var list = new Array();
+
+      for (var i = 0; i < length; i += 1) {
+
+        var count = rsBlock[i * 3 + 0];
+        var totalCount = rsBlock[i * 3 + 1];
+        var dataCount = rsBlock[i * 3 + 2];
+
+        for (var j = 0; j < count; j += 1) {
+          list.push(qrRSBlock(totalCount, dataCount) );
+        }
+      }
+
+      return list;
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // qrBitBuffer
+  //---------------------------------------------------------------------
+
+  var qrBitBuffer = function() {
+
+    var _buffer = new Array();
+    var _length = 0;
+
+    var _this = {};
+
+    _this.getBuffer = function() {
+      return _buffer;
+    };
+
+    _this.getAt = function(index) {
+      var bufIndex = Math.floor(index / 8);
+      return ( (_buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+    };
+
+    _this.put = function(num, length) {
+      for (var i = 0; i < length; i += 1) {
+        _this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+      }
+    };
+
+    _this.getLengthInBits = function() {
+      return _length;
+    };
+
+    _this.putBit = function(bit) {
+
+      var bufIndex = Math.floor(_length / 8);
+      if (_buffer.length <= bufIndex) {
+        _buffer.push(0);
+      }
+
+      if (bit) {
+        _buffer[bufIndex] |= (0x80 >>> (_length % 8) );
+      }
+
+      _length += 1;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrNumber
+  //---------------------------------------------------------------------
+
+  var qrNumber = function(data) {
+
+    var _mode = QRMode.MODE_NUMBER;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _data;
+
+      var i = 0;
+
+      while (i + 2 < data.length) {
+        buffer.put(strToNum(data.substring(i, i + 3) ), 10);
+        i += 3;
+      }
+
+      if (i < data.length) {
+        if (data.length - i == 1) {
+          buffer.put(strToNum(data.substring(i, i + 1) ), 4);
+        } else if (data.length - i == 2) {
+          buffer.put(strToNum(data.substring(i, i + 2) ), 7);
+        }
+      }
+    };
+
+    var strToNum = function(s) {
+      var num = 0;
+      for (var i = 0; i < s.length; i += 1) {
+        num = num * 10 + chatToNum(s.charAt(i) );
+      }
+      return num;
+    };
+
+    var chatToNum = function(c) {
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      }
+      throw 'illegal char :' + c;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrAlphaNum
+  //---------------------------------------------------------------------
+
+  var qrAlphaNum = function(data) {
+
+    var _mode = QRMode.MODE_ALPHA_NUM;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var s = _data;
+
+      var i = 0;
+
+      while (i + 1 < s.length) {
+        buffer.put(
+          getCode(s.charAt(i) ) * 45 +
+          getCode(s.charAt(i + 1) ), 11);
+        i += 2;
+      }
+
+      if (i < s.length) {
+        buffer.put(getCode(s.charAt(i) ), 6);
+      }
+    };
+
+    var getCode = function(c) {
+
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      } else if ('A' <= c && c <= 'Z') {
+        return c.charCodeAt(0) - 'A'.charCodeAt(0) + 10;
+      } else {
+        switch (c) {
+        case ' ' : return 36;
+        case '$' : return 37;
+        case '%' : return 38;
+        case '*' : return 39;
+        case '+' : return 40;
+        case '-' : return 41;
+        case '.' : return 42;
+        case '/' : return 43;
+        case ':' : return 44;
+        default :
+          throw 'illegal char :' + c;
+        }
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qr8BitByte
+  //---------------------------------------------------------------------
+
+  var qr8BitByte = function(data) {
+
+    var _mode = QRMode.MODE_8BIT_BYTE;
+    var _data = data;
+    var _bytes = qrcode.stringToBytes(data);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _bytes.length;
+    };
+
+    _this.write = function(buffer) {
+      for (var i = 0; i < _bytes.length; i += 1) {
+        buffer.put(_bytes[i], 8);
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrKanji (unused here, kept for library completeness)
+  //---------------------------------------------------------------------
+
+  var qrKanji = function(data) {
+
+    var _mode = QRMode.MODE_KANJI;
+    var _data = data;
+    var _bytes = qrcode.stringToBytes(data);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return ~~(_bytes.length / 2);
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _bytes;
+
+      var i = 0;
+
+      while (i + 1 < data.length) {
+
+        var c = ( (0xff & data[i]) << 8) | (0xff & data[i + 1]);
+
+        if (0x8140 <= c && c <= 0x9FFC) {
+          c -= 0x8140;
+        } else if (0xE040 <= c && c <= 0xEBBF) {
+          c -= 0xC140;
+        } else {
+          throw 'illegal char at ' + (i + 1) + '/' + c;
+        }
+
+        c = ( (c >>> 8) & 0xff) * 0xC0 + (c & 0xff);
+
+        buffer.put(c, 13);
+
+        i += 2;
+      }
+
+      if (i < data.length) {
+        throw 'illegal char at ' + (i + 1);
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // returns qrcode function.
+
+  return qrcode;
+}();
+</script>
+<script>
+const tabs = document.querySelectorAll('.tab');
+const panels = { patrol: document.getElementById('panel-patrol'), incident: document.getElementById('panel-incident'), whatsapp: document.getElementById('panel-whatsapp') };
+let currentTab = 'patrol';
+
+tabs.forEach(t => t.addEventListener('click', () => {
+  tabs.forEach(x => x.classList.remove('active'));
+  t.classList.add('active');
+  currentTab = t.dataset.tab;
+  Object.keys(panels).forEach(k => panels[k].style.display = (k === currentTab ? 'block' : 'none'));
+  document.getElementById('output-wrap').classList.remove('show');
+  document.getElementById('error-msg').style.display = 'none';
+}));
+
+// chip selectors
+document.querySelectorAll('.chip-select').forEach(group => {
+  group.addEventListener('click', e => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    group.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+  });
+});
+
+function getActiveChip(groupId){
+  const g = document.getElementById(groupId);
+  const active = g.querySelector('.chip.active');
+  return active ? active.dataset.val : '';
+}
+
+function buildPrompt(mode){
+  if (mode === 'patrol'){
+    const location = document.getElementById('p-location').value.trim();
+    const observation = document.getElementById('p-observation').value.trim();
+    if (!location || !observation) return { error: 'Add a location and the issue observed.' };
+    return {
+      system: "You are helping a security/patrol officer write a maintenance/observation line for a duty log. Write it as a SINGLE professional sentence, nothing more. Format: bold the Zone and Floor only using **double asterisks** (e.g. **Zone A, 2nd Floor**), followed by a colon, then the exact location detail, then the observed issue only. Do not include any solution, recommendation, or corrective action, and do not include Date, Time, Action Taken, headers, or signature lines — just the one line. Match this style exactly:\n\n**Zone A & Zone B, 3rd Floor** (Burjeel Eye Institute): Two ceiling-mounted console lights are not functioning (lights are off).\n\nAlways use complete, grammatically correct English — correct spelling, subject-verb agreement, and punctuation, even if the officer's notes were rough, abbreviated, or contained typos. Return only that single line, nothing else — no preamble, no quotes around it.",
+      user: `Location: ${location}\nIssue observed: ${observation}`
+    };
+  }
+  if (mode === 'incident'){
+    const who = document.getElementById('i-who').value.trim();
+    const date = document.getElementById('i-date').value.trim() || 'today';
+    const time = document.getElementById('i-time').value.trim() || 'now';
+    const what = document.getElementById('i-what').value.trim();
+    const injury = document.getElementById('i-injury').value.trim();
+    const action = document.getElementById('i-action').value.trim();
+    if (!who || !what) return { error: 'Add who was involved and what happened.' };
+    return {
+      system: "You are helping a security officer write an objective incident/patient report. Use factual, neutral, third-person language. Do not speculate about cause, blame, or medical diagnosis beyond what is stated. Use this exact structure with these headers: INCIDENT REPORT, Date, Time, Person(s) Involved, Description of Incident, Injuries/Condition, Action Taken, Follow-up Required, Officer Signature (leave signature blank). Always use complete, grammatically correct English — correct spelling, subject-verb agreement, and punctuation, even if the officer's notes were rough or contained typos. Return only the finished report text, nothing else.",
+      user: `Person(s) involved: ${who}\nDate: ${date}\nTime: ${time}\nWhat happened: ${what}\nInjuries/condition: ${injury || 'none reported'}\nAction taken: ${action || 'not specified'}`
+    };
+  }
+  if (mode === 'whatsapp'){
+    const incoming = document.getElementById('w-incoming').value.trim();
+    const intent = document.getElementById('w-intent').value.trim();
+    const tone = getActiveChip('w-tone');
+    if (!intent) return { error: "Add what you want to say." };
+    return {
+      system: `You are helping a security/patrol officer draft a short WhatsApp reply. Keep it brief, natural, and appropriate for a messaging app — not a formal letter, no headers, no sign-off block. Tone should be ${tone.toLowerCase()}. Use correct grammar, spelling, and punctuation even if the officer's own wording was informal or had typos. Return only the message text, nothing else.`,
+      user: incoming ? `They messaged: "${incoming}"\n\nI want to reply saying: ${intent}` : `I want to send this message: ${intent}`
+    };
+  }
+}
+
+async function runGenerate(built, mode, triggerEl){
+  const errorEl = document.getElementById('error-msg');
+  errorEl.style.display = 'none';
+
+  if (built.error){
+    errorEl.textContent = built.error;
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  if (triggerEl){ triggerEl.disabled = true; triggerEl.classList.add('loading'); }
+  document.getElementById('output-wrap').classList.remove('show');
+
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1000,
+        system: built.system,
+        messages: [{ role: "user", content: built.user }]
+      })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      const msg = (data && data.error && data.error.message) ? data.error.message : `Request failed (${response.status})`;
+      throw new Error(msg);
+    }
+    const text = (data.content || []).map(b => b.text || '').join('\n').trim();
+    if (!text) throw new Error('Empty response');
+
+    const html = text
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    document.getElementById('output-text').innerHTML = html;
+    document.getElementById('stub-label').textContent = mode === 'whatsapp' ? 'REPLY' : 'DUTY LOG';
+    const now = new Date();
+    document.getElementById('output-ts').textContent = 'Generated ' + now.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+    document.getElementById('output-wrap').classList.add('show');
+    document.getElementById('qr-box').classList.remove('show');
+    document.getElementById('wa-qr-toggle').textContent = 'Show QR';
+    document.getElementById('output-wrap').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } catch (err) {
+    errorEl.textContent = "Couldn't generate: " + (err.message || "check connection and try again.");
+    errorEl.style.display = 'block';
+  } finally {
+    if (triggerEl){ triggerEl.disabled = false; triggerEl.classList.remove('loading'); }
+  }
+}
+
+document.querySelectorAll('.generate-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const mode = btn.dataset.mode;
+    const built = buildPrompt(mode);
+    runGenerate(built, mode, btn);
+  });
+});
+
+function buildVoicePrompt(mode, transcript){
+  if (mode === 'patrol'){
+    return {
+      system: "You are helping a security/patrol officer turn a spoken, possibly rambling voice note into a maintenance/observation line for a duty log. Pull out the zone/floor and the issue observed from the speech, ignoring filler words. Write it as a SINGLE professional sentence, nothing more. Format: bold the Zone and Floor only using **double asterisks** (e.g. **Zone A, 2nd Floor**), followed by a colon, then the exact location detail, then the observed issue only. Do not include any solution, recommendation, or corrective action, and do not include Date, Time, Action Taken, headers, or signature lines — just the one line. Match this style exactly:\n\n**Zone A & Zone B, 3rd Floor** (Burjeel Eye Institute): Two ceiling-mounted console lights are not functioning (lights are off).\n\nAlways use complete, grammatically correct English — correct spelling, subject-verb agreement, and punctuation. If the zone/floor or the issue truly isn't stated anywhere in the speech, use [zone/floor not stated] or [issue not stated] as a placeholder for that part only. Return only that single line, nothing else — no preamble, no quotes around it.",
+      user: `Officer's spoken voice note: "${transcript}"`
+    };
+  }
+  if (mode === 'incident'){
+    return {
+      system: "You are helping a security officer turn a spoken, possibly rambling voice note into an objective incident/patient report. Pull out who was involved, what happened, injuries/condition, and action taken from the speech, ignoring filler words. Use factual, neutral, third-person language. Do not speculate about cause, blame, or medical diagnosis beyond what is stated. Use this exact structure with these headers: INCIDENT REPORT, Person(s) Involved, Description of Incident, Injuries/Condition, Action Taken, Follow-up Required. If any of these truly aren't mentioned in the speech, write 'Not stated' for that field. Always use complete, grammatically correct English — correct spelling, subject-verb agreement, and punctuation. Return only the finished report text, nothing else.",
+      user: `Officer's spoken voice note: "${transcript}"`
+    };
+  }
+  if (mode === 'whatsapp'){
+    return {
+      system: "You are helping a security/patrol officer turn a spoken voice note into a short WhatsApp reply. The officer will describe, out loud, what they want to say (and maybe what they're replying to). Keep the result brief, natural, and appropriate for a messaging app — no headers, no sign-off block. Use a professional tone unless the speech clearly implies otherwise. Use correct grammar, spelling, and punctuation. Return only the message text, nothing else.",
+      user: `Officer's spoken voice note: "${transcript}"`
+    };
+  }
+}
+
+const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+function updateMicAvailability(){
+  document.querySelectorAll('.mic-btn').forEach(btn => {
+    if (!SpeechRecognitionCtor){
+      btn.disabled = true;
+      btn.title = "Voice input isn't supported in this browser — try Chrome.";
+    }
+  });
+}
+updateMicAvailability();
+
+function startVoiceCapture(mode, btn){
+  const errorEl = document.getElementById('error-msg');
+  errorEl.style.display = 'none';
+
+  if (!SpeechRecognitionCtor){
+    errorEl.textContent = "Voice input isn't supported in this browser — try Chrome.";
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  const heardEl = document.getElementById(`heard-${mode}`);
+  const originalLabel = btn.dataset.label;
+  const recognition = new SpeechRecognitionCtor();
+  recognition.lang = 'en-US';
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  btn.classList.add('listening');
+  btn.textContent = '● Listening…';
+  if (heardEl) { heardEl.textContent = ''; heardEl.style.display = 'none'; }
+
+  recognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript;
+    if (heardEl){
+      heardEl.textContent = `You said: "${transcript}"`;
+      heardEl.style.display = 'block';
+    }
+    const built = buildVoicePrompt(mode, transcript);
+    runGenerate(built, mode, null);
+  };
+
+  recognition.onerror = () => {
+    errorEl.textContent = "Didn't catch that — try again, or type it in instead.";
+    errorEl.style.display = 'block';
+  };
+
+  recognition.onend = () => {
+    btn.classList.remove('listening');
+    btn.textContent = originalLabel;
+  };
+
+  recognition.start();
+}
+
+document.querySelectorAll('.mic-btn').forEach(btn => {
+  btn.dataset.label = btn.textContent;
+  btn.addEventListener('click', () => startVoiceCapture(btn.dataset.mode, btn));
+});
+
+document.getElementById('copy-btn').addEventListener('click', () => {
+  const text = document.getElementById('output-text').innerText;
+  const btn = document.getElementById('copy-btn');
+  const showCopied = () => {
+    btn.textContent = 'Copied';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(showCopied).catch(() => fallbackCopy(text, showCopied));
+  } else {
+    fallbackCopy(text, showCopied);
+  }
+});
+
+function fallbackCopy(text, onSuccess){
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try {
+    document.execCommand('copy');
+    onSuccess();
+  } catch (e) {
+    document.getElementById('error-msg').textContent = "Couldn't copy — select and copy the text manually.";
+    document.getElementById('error-msg').style.display = 'block';
+  }
+  document.body.removeChild(ta);
+}
+
+function buildWaLink(){
+  const text = document.getElementById('output-text').innerText.trim();
+  const rawNumber = document.getElementById('wa-number').value.trim();
+  const digits = rawNumber.replace(/[^\d]/g, '');
+  const base = digits ? `https://wa.me/${digits}` : 'https://wa.me/';
+  return `${base}?text=${encodeURIComponent(text)}`;
+}
+
+document.getElementById('wa-send').addEventListener('click', () => {
+  const text = document.getElementById('output-text').innerText.trim();
+  if (!text) return;
+  window.open(buildWaLink(), '_blank');
+});
+
+function makeLocalQrSvg(text){
+  for (var t = 1; t <= 40; t += 1){
+    try {
+      var qr = qrcode(t, 'M');
+      qr.addData(text);
+      qr.make();
+      return qr.createSvgTag(4, 8);
+    } catch (e) {
+      continue; // try a bigger QR version
+    }
+  }
+  return null;
+}
+
+document.getElementById('wa-qr-toggle').addEventListener('click', () => {
+  const box = document.getElementById('qr-box');
+  const btn = document.getElementById('wa-qr-toggle');
+  const willShow = !box.classList.contains('show');
+  if (willShow){
+    const link = buildWaLink();
+    const svg = makeLocalQrSvg(link);
+    document.getElementById('qr-img').innerHTML = svg || '';
+    if (!svg) {
+      document.getElementById('error-msg').textContent = "Message is too long to fit in a QR code — try shortening it.";
+      document.getElementById('error-msg').style.display = 'block';
+      return;
+    }
+    box.classList.add('show');
+    btn.textContent = 'Hide QR';
+  } else {
+    box.classList.remove('show');
+    btn.textContent = 'Show QR';
+  }
+});
+
+</script>
+</body>
+</html>
